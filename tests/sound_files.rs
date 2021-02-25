@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use peroxide::SodaBuilder;
+use peroxide::{RecognitionMode, ResultType, SodaBuilder, SodaResponse};
 
 macro_rules! f_p {
     ($r:expr) => {
@@ -32,11 +32,16 @@ fn test_audio<P: AsRef<Path>>(path: P, model: &str, expected: &str) {
     let mut client = SodaBuilder::new()
         .channel_count(1)
         .sample_rate(16000)
+        .recognition_mode(RecognitionMode::Caption)
         .language_pack_directory(String::from(model))
-        .api_key("dummy-key".into())
-        .build(|c: &str, f: bool| {
-            if f {
-                assert_eq!(c, expected);
+        .api_key("262603e4-b3c8-4398-b306-c1260751f8d9".into())
+        .build(|r: SodaResponse| {
+            if let Some(recognition_result) = r.recognition_result {
+                if let Some(rt) = recognition_result.result_type {
+                    if rt == ResultType::Final as i32 {
+                        assert_eq!(recognition_result.hypothesis[0], expected);
+                    }
+                }
             }
         });
 

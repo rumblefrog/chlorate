@@ -8,3 +8,8 @@ edition = "2018"
 
 [dependencies]
 libc = "0.2"
+bytes = "1"
+prost = "0.7"
+
+[build-dependencies]
+prost-build = "0.7"

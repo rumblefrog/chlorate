@@ -55,7 +55,7 @@ extern "C" {
     fn ExtendedSodaStart(soda_async_handle: *mut c_void);
 }
 
-type SodaCBFn<'soda> = dyn Fn(SodaResponse) + 'soda;
+type SodaCBFn<'soda> = dyn Fn(SodaResponse) + Send + Sync + 'soda;
 type SodaCallback<'soda> = Box<Box<SodaCBFn<'soda>>>;
 
 pub struct SodaBuilder {
@@ -80,8 +80,8 @@ pub struct SodaBuilder {
     enable_lang_id: bool,
 }
 
-impl SodaBuilder {
-    pub fn new() -> SodaBuilder {
+impl Default for SodaBuilder {
+    fn default() -> SodaBuilder {
         SodaBuilder {
             channel_count: 1,
             sample_rate: 16000,
@@ -95,23 +95,29 @@ impl SodaBuilder {
             enable_lang_id: false,
         }
     }
+}
+
+impl SodaBuilder {
+    pub fn new() -> SodaBuilder {
+        SodaBuilder::default()
+    }
 
     /// Number of channels in RAW audio that will be provided to SODA.
-    pub fn channel_count<'b>(&'b mut self, channel_count: u32) -> &'b mut SodaBuilder {
+    pub fn channel_count(&mut self, channel_count: u32) -> &mut SodaBuilder {
         self.channel_count = channel_count;
         self
     }
 
     /// Maximum size of buffer to use in PipeStream. By default, is 0, which means
     /// unlimited.
-    pub fn sample_rate<'b>(&'b mut self, sample_rate: u32) -> &'b mut SodaBuilder {
+    pub fn sample_rate(&mut self, sample_rate: u32) -> &mut SodaBuilder {
         self.sample_rate = sample_rate;
         self
     }
 
     /// Maximum size of buffer to use in PipeStream. By default, is 0, which means
     /// unlimited.
-    pub fn max_buffer_bytes<'b>(&'b mut self, max_buffer_bytes: u32) -> &'b mut SodaBuilder {
+    pub fn max_buffer_bytes(&mut self, max_buffer_bytes: u32) -> &mut SodaBuilder {
         self.max_buffer_bytes = max_buffer_bytes;
         self
     }
@@ -122,34 +128,28 @@ impl SodaBuilder {
     /// This slows down audio provided to SODA to a maximum of real-time, which
     /// means more accurate endpointer behavior, but is unsuitable for execution in
     /// real production environments. Set with caution!
-    pub fn simulate_realtime_testonly<'b>(
-        &'b mut self,
+    pub fn simulate_realtime_testonly(
+        &mut self,
         simulate_realtime_testonly: bool,
-    ) -> &'b mut SodaBuilder {
+    ) -> &mut SodaBuilder {
         self.simulate_realtime_test_only = simulate_realtime_testonly;
         self
     }
 
     /// Directory of the language pack to use.
-    pub fn language_pack_directory<'b>(
-        &'b mut self,
-        language_pack_directory: String,
-    ) -> &'b mut SodaBuilder {
+    pub fn language_pack_directory(&mut self, language_pack_directory: String) -> &mut SodaBuilder {
         self.language_pack_directory = language_pack_directory;
         self
     }
 
     /// API key used for call verification.
-    pub fn api_key<'b>(&'b mut self, api_key: String) -> &'b mut SodaBuilder {
+    pub fn api_key(&mut self, api_key: String) -> &mut SodaBuilder {
         self.api_key = api_key;
         self
     }
 
     /// What kind of recognition to execute here. Impacts model usage.
-    pub fn recognition_mode<'b>(
-        &'b mut self,
-        recognition_mode: RecognitionMode,
-    ) -> &'b mut SodaBuilder {
+    pub fn recognition_mode(&mut self, recognition_mode: RecognitionMode) -> &mut SodaBuilder {
         self.recognition_mode = recognition_mode;
         self
     }
@@ -160,32 +160,29 @@ impl SodaBuilder {
     /// endpoint event is detected and wait for it to generate a final event using
     /// audio up to the endpoint. This will cause processing bursts when a new
     /// session starts.
-    pub fn reset_on_final_result<'b>(
-        &'b mut self,
-        reset_on_final_result: bool,
-    ) -> &'b mut SodaBuilder {
+    pub fn reset_on_final_result(&mut self, reset_on_final_result: bool) -> &mut SodaBuilder {
         self.reset_on_final_result = reset_on_final_result;
         self
     }
 
     /// Whether to populate the timing_metrics field on Recognition and Endpoint
     /// events.
-    pub fn include_timing_metrics<'b>(
-        &'b mut self,
-        include_timing_metrics: bool,
-    ) -> &'b mut SodaBuilder {
+    pub fn include_timing_metrics(&mut self, include_timing_metrics: bool) -> &mut SodaBuilder {
         self.include_timing_metrics = include_timing_metrics;
         self
     }
 
     /// Whether or not to request lang id events.
-    pub fn enable_lang_id<'b>(&'b mut self, enable_lang_id: bool) -> &'b mut SodaBuilder {
+    pub fn enable_lang_id(&mut self, enable_lang_id: bool) -> &mut SodaBuilder {
         self.enable_lang_id = enable_lang_id;
         self
     }
 
     /// Consumes `SodaBuilder` to create `SodaClient`.
-    pub fn build<'soda>(&mut self, callback: impl Fn(SodaResponse) + Send + Sync + 'soda) -> SodaClient<'soda> {
+    pub fn build<'soda>(
+        &mut self,
+        callback: impl Fn(SodaResponse) + Send + Sync + 'soda,
+    ) -> SodaClient<'soda> {
         let callback: SodaCallback = Box::new(Box::new(callback));
 
         let config = SerializedSodaConfigMsg {

@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use peroxide::{RecognitionMode, ResultType, SodaBuilder, SodaResponse};
+use chlorate::{RecognitionMode, ResultType, SodaBuilder, SodaResponse};
 
 macro_rules! f_p {
     ($r:expr) => {
@@ -34,7 +34,7 @@ fn test_audio<P: AsRef<Path>>(path: P, model: &str, expected: &str) {
         .sample_rate(16000)
         .recognition_mode(RecognitionMode::Caption)
         .language_pack_directory(String::from(model))
-        .api_key("262603e4-b3c8-4398-b306-c1260751f8d9".into())
+        .api_key("00000000-0000-0000-0000-000000000000".into())
         .build(|r: SodaResponse| {
             if let Some(recognition_result) = r.recognition_result {
                 if let Some(rt) = recognition_result.result_type {

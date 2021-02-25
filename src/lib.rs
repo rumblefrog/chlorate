@@ -56,7 +56,7 @@ extern "C" {
 }
 
 type SodaCBFn<'soda> = dyn Fn(SodaResponse) + 'soda;
-pub type SodaCallback<'soda> = Box<Box<SodaCBFn<'soda>>>;
+type SodaCallback<'soda> = Box<Box<SodaCBFn<'soda>>>;
 
 pub struct SodaBuilder {
     channel_count: u32,
@@ -178,7 +178,7 @@ impl SodaBuilder {
         self
     }
 
-    ///  Whether or not to request lang id events.
+    /// Whether or not to request lang id events.
     pub fn enable_lang_id<'b>(&'b mut self, enable_lang_id: bool) -> &'b mut SodaBuilder {
         self.enable_lang_id = enable_lang_id;
         self

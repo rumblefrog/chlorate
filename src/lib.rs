@@ -240,6 +240,22 @@ impl<'soda> SodaClient<'soda> {
     where
         R: Read,
     {
+        self.add_chunked_audio(data, false);
+    }
+
+    /// Adds audio to SODA processor in 2048 byte chunks.
+    /// Includes 20ms delay for real-time audio simulation.
+    pub fn add_simulated_audio<R>(&mut self, data: R)
+    where
+        R: Read,
+    {
+        self.add_chunked_audio(data, true);
+    }
+
+    fn add_chunked_audio<R>(&mut self, data: R, simulate_real_time: bool)
+    where
+        R: Read,
+    {
         let mut data = data;
 
         let mut chunk = vec![0; 2048];
@@ -249,22 +265,20 @@ impl<'soda> SodaClient<'soda> {
                 break;
             }
 
-            self.add_chunked_audio(&chunk[..len], len as u32);
+            unsafe {
+                ExtendedAddAudio(
+                    self.soda_handle,
+                    (&chunk[..len]).as_ptr() as *const c_char,
+                    len as c_int,
+                )
+            };
 
             // Sleep for 20ms to simulate real-time audio. SODA requires audio
             // streaming in order to return events.
-            std::thread::sleep(std::time::Duration::from_millis(20));
+            if simulate_real_time {
+                std::thread::sleep(std::time::Duration::from_millis(20));
+            }
         }
-    }
-
-    fn add_chunked_audio(&mut self, data: &[u8], len: u32) {
-        unsafe {
-            ExtendedAddAudio(
-                self.soda_handle,
-                data.as_ptr() as *const c_char,
-                len as c_int,
-            )
-        };
     }
 }
 

@@ -45,5 +45,5 @@ fn test_audio<P: AsRef<Path>>(path: P, model: &str, expected: &str) {
             }
         });
 
-    client.add_audio(&mut data);
+    client.add_simulated_audio(&mut data);
 }

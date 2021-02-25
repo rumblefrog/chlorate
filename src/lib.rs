@@ -185,7 +185,7 @@ impl SodaBuilder {
     }
 
     /// Consumes `SodaBuilder` to create `SodaClient`.
-    pub fn build<'soda>(&mut self, callback: impl Fn(SodaResponse) + 'soda) -> SodaClient<'soda> {
+    pub fn build<'soda>(&mut self, callback: impl Fn(SodaResponse) + Send + Sync + 'soda) -> SodaClient<'soda> {
         let callback: SodaCallback = Box::new(Box::new(callback));
 
         let config = SerializedSodaConfigMsg {

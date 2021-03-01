@@ -8,13 +8,13 @@ use libc::{c_char, c_int, c_void};
 use prost::Message;
 
 mod soda_api {
-    include!(concat!(env!("OUT_DIR"), "/speech.soda.api.rs"));
+    include!(concat!(env!("OUT_DIR"), "/speech.soda.chrome.rs"));
 }
 
-use soda_api::SerializedSodaConfigMsg;
+use soda_api::ExtendedSodaConfigMsg;
 
 pub use soda_api::{
-    serialized_soda_config_msg::RecognitionMode,
+    extended_soda_config_msg::RecognitionMode,
     soda_recognition_result::{FinalResultEndpointReason, ResultType},
     soda_response::SodaMessageType,
     SodaAudioLevelInfo, SodaEndpointEvent, SodaLangIdEvent, SodaRecognitionResult, SodaResponse,
@@ -185,7 +185,7 @@ impl SodaBuilder {
     ) -> SodaClient<'soda> {
         let callback: SodaCallback = Box::new(Box::new(callback));
 
-        let config = SerializedSodaConfigMsg {
+        let config = ExtendedSodaConfigMsg {
             channel_count: Some(self.channel_count as i32),
             sample_rate: Some(self.sample_rate as i32),
             max_buffer_bytes: Some(self.max_buffer_bytes as i32),
